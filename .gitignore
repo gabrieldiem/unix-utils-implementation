@@ -1,0 +1,5 @@
+*.o
+tests/__pycache__
+.vscode
+primes
+xargs
