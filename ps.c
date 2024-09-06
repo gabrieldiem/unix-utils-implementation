@@ -23,7 +23,7 @@ static const int IS_DIGIT_TRUE = 0;
 static const int SUCCESS = 0, FAILED = -1;
 
 typedef struct process {
-	char *pid;
+	size_t pid;
 	char *cmd_name;
 } process_t;
 
@@ -51,26 +51,19 @@ read_entity_from_directory(DIR *proc_directory, struct dirent **entity)
 	}
 }
 
-int
-load_pid(char **pid, struct dirent *entity)
+void
+load_pid(size_t *pid, struct dirent *entity)
 {
-	int size = strlen(entity->d_name) + 1;
-	*pid = calloc(size, sizeof(char));
-	if (*pid == NULL) {
-		perror("Failed to allocate memory for pid");
-		return FAILED;
-	}
-
-	strcpy(*pid, entity->d_name);
-	return SUCCESS;
+	*pid = atoi(entity->d_name);
 }
 
 int
-load_comm_filepath(char **comm_filepath, int *comm_filepath_size, char *pid)
+load_comm_filepath(char **comm_filepath, int *comm_filepath_size, size_t pid)
 {
 	int extra_buffer_size = 10;
+	int pid_digits = snprintf(NULL, 0, "%lu", pid);
 	*comm_filepath_size =
-	        strlen(pid) + strlen(PROC_DIR_ABS_PATH) + extra_buffer_size;
+	        pid_digits + strlen(PROC_DIR_ABS_PATH) + extra_buffer_size;
 
 	*comm_filepath = calloc(*comm_filepath_size, sizeof(char));
 	if (*comm_filepath == NULL) {
@@ -81,7 +74,7 @@ load_comm_filepath(char **comm_filepath, int *comm_filepath_size, char *pid)
 	(*comm_filepath)[0] = '\0';
 	snprintf(*comm_filepath,
 	         *comm_filepath_size,
-	         "%s/%s/%s",
+	         "%s/%lu/%s",
 	         PROC_DIR_ABS_PATH,
 	         pid,
 	         COMM_FILEPATH_RELATIVE_TO_PID);
@@ -142,7 +135,7 @@ read_comm_file(char **cmd_name, char *comm_filepath)
 }
 
 int
-load_cmd_name(char **cmd_name, char *pid)
+load_cmd_name(char **cmd_name, size_t pid)
 {
 	char *comm_filepath = NULL;
 	int comm_filepath_size = 0;
@@ -187,7 +180,6 @@ free_processes_vector(process_t **processes, size_t *processes_size)
 {
 	for (size_t i = 0; i < *processes_size; i++) {
 		free((*processes)[i].cmd_name);
-		free((*processes)[i].pid);
 	}
 
 	free(*processes);
@@ -198,17 +190,13 @@ free_processes_vector(process_t **processes, size_t *processes_size)
 int
 add_process(process_t **processes, size_t *processes_size, struct dirent *entity)
 {
-	char *pid = NULL;
+	size_t pid = 0;
 	char *cmd_name = NULL;
 
-	int res = load_pid(&pid, entity);
-	if (res == FAILED) {
-		return FAILED;
-	}
+	load_pid(&pid, entity);
 
-	res = load_cmd_name(&cmd_name, pid);
+	int res = load_cmd_name(&cmd_name, pid);
 	if (res == FAILED) {
-		free(pid);
 		return FAILED;
 	}
 
@@ -226,7 +214,6 @@ add_process(process_t **processes, size_t *processes_size, struct dirent *entity
 
 	if (processes_aux == NULL) {
 		perror("Failed to allocate processes vector");
-		free(pid);
 		free(cmd_name);
 		return FAILED;
 	}
@@ -238,7 +225,7 @@ add_process(process_t **processes, size_t *processes_size, struct dirent *entity
 }
 
 int
-process_t_comp(const void *elem1, const void *elem2)
+process_t_comparator(const void *elem1, const void *elem2)
 {
 	process_t process1 = *((process_t *) elem1);
 	process_t process2 = *((process_t *) elem2);
@@ -255,13 +242,13 @@ process_t_comp(const void *elem1, const void *elem2)
 void
 sort_vector_by_pid(process_t *processes, size_t processes_size)
 {
-	qsort(processes, processes_size, sizeof(process_t), process_t_comp);
+	qsort(processes, processes_size, sizeof(process_t), process_t_comparator);
 }
 
 void
 print_processes(process_t *processes, size_t processes_size)
 {
-	int max_pid = atoi(processes[processes_size - 1].pid);
+	int max_pid = processes[processes_size - 1].pid;
 	int max_spaces = snprintf(NULL, 0, "%d", max_pid);
 
 	for (int k = 0; k < max_spaces - 2; k++) {
@@ -270,14 +257,14 @@ print_processes(process_t *processes, size_t processes_size)
 	printf("PID COMMAND\n");
 
 	for (size_t i = 0; i < processes_size; i++) {
-		int spaces = max_spaces -
-		             snprintf(NULL, 0, "%d", atoi(processes[i].pid));
+		int spaces =
+		        max_spaces - snprintf(NULL, 0, "%lu", processes[i].pid);
 
 		for (int k = 0; k < spaces + 1; k++) {
 			printf(" ");
 		}
 
-		printf("%s %s\n", processes[i].pid, processes[i].cmd_name);
+		printf("%lu %s\n", processes[i].pid, processes[i].cmd_name);
 	}
 }
 
