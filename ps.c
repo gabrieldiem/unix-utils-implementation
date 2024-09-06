@@ -10,9 +10,9 @@
 #include <fcntl.h>
 #include <stdbool.h>
 
-#define TEMP_BUFF_SIZE 3
+#define TEMP_BUFF_SIZE 50
 
-static const int MINIMUM_INPUT_PARAMS = 0;
+static const int INPUT_OPTIONAL_PARAMS = 0;
 
 static const char PROC_DIR_ABS_PATH[] = "/proc";
 static const char COMM_FILEPATH_RELATIVE_TO_PID[] = "comm";
@@ -106,8 +106,8 @@ read_comm_file(char **cmd_name, char *comm_filepath)
 		position += bytes_read / sizeof(char);
 
 		if (position >= TEMP_BUFF_SIZE - 1) {
-			size_t new_size =
-			        position * TEMP_BUFF_SIZE * sizeof(char);
+			size_t new_size = ((position / TEMP_BUFF_SIZE) + 1) *
+			                  TEMP_BUFF_SIZE * sizeof(char);
 			char *cmd_name_aux = realloc(*cmd_name, new_size);
 
 			if (cmd_name_aux == NULL) {
@@ -271,7 +271,7 @@ print_processes(process_t *processes, size_t processes_size)
 int
 main(int argc, char *argv[])
 {
-	if (argc != MINIMUM_INPUT_PARAMS + 1) {
+	if (argc != INPUT_OPTIONAL_PARAMS + 1) {
 		fprintf(stderr,
 		        "Error while calling program. Expected %s call with no "
 		        "extra arguments",
