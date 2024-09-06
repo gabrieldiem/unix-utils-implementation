@@ -1,5 +1,4 @@
 *.o
-tests/__pycache__
+tests
 .vscode
-primes
-xargs
+ps
