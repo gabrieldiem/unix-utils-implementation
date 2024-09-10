@@ -1,14 +1,14 @@
-#include <unistd.h>
-#include <stdlib.h>
 #include <sys/stat.h>
-#include <stdio.h>
 #include <sys/types.h>
-#include <dirent.h>
-#include <errno.h>
-#include <string.h>
 #include <ctype.h>
-#include <fcntl.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <errno.h>
+#include <dirent.h>
+#include <fcntl.h>
 
 #define TEMP_BUFF_SIZE 50
 
@@ -52,7 +52,7 @@ read_entity_from_directory(DIR *proc_directory, struct dirent **entity)
 {
 	errno = 0;
 	*entity = readdir(proc_directory);
-	if (*entity == NULL && errno != 0) {
+	if (errno != 0 && *entity == NULL) {
 		perror("Error while reading process directory");
 		close_process_directory(proc_directory);
 		exit(EXIT_FAILURE);
@@ -131,7 +131,7 @@ read_comm_file(char **cmd_name, char *comm_filepath)
 
 	int bytes_read = read(comm_fd, temp_buff, TEMP_BUFF_SIZE - 1);
 	while (bytes_read == TEMP_BUFF_SIZE - 1 && *cmd_name != NULL) {
-		strcat(*cmd_name, temp_buff);
+		strncat(*cmd_name, temp_buff, TEMP_BUFF_SIZE);
 		position += bytes_read / sizeof(char);
 
 		if (position >= TEMP_BUFF_SIZE - 1) {
@@ -157,7 +157,7 @@ read_comm_file(char **cmd_name, char *comm_filepath)
 	}
 
 	if (bytes_read > 0) {
-		strcat(*cmd_name, temp_buff);
+		strncat(*cmd_name, temp_buff, TEMP_BUFF_SIZE);
 	} else if (bytes_read == GENERIC_ERROR_CODE) {
 		perror("Failed to read comm file");
 		close(comm_fd);
@@ -344,7 +344,7 @@ main(int argc, char *argv[])
 	if (argc != INPUT_OPTIONAL_PARAMS + 1) {
 		fprintf(stderr,
 		        "Error while calling program. Expected %s call with no "
-		        "extra arguments",
+		        "extra arguments\n",
 		        argv[0]);
 		exit(EXIT_FAILURE);
 	}
