@@ -18,6 +18,10 @@ Una vez compilado, se pueden **ejecutar** los siguientes programas:
 ./find [-i] <phrase>
 ```
 
+```shell
+./ls
+```
+
 Para **eliminar** los ejecutables correr el comando:
 
 ```shell
