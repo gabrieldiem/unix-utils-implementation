@@ -70,3 +70,5 @@ Los permisos tienen la forma estándar:
 Donde si el permiso correspondiente no está presente el caracter mostrado es: `-`.
 
 El `[link destination]` se muestra sólo en el caso de las entidades que son links.
+
+### timeout
