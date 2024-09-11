@@ -247,5 +247,5 @@ main(int argc, char *argv[])
 	read_directory(wd, WD_PATH_ALIAS, contains_substring, phrase);
 	close_directory(wd);
 
-	return 0;
+	exit(EXIT_SUCCESS);
 }
