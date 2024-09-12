@@ -12,7 +12,7 @@
 
 #define TEMP_BUFF_SIZE 50
 
-static const int INPUT_OPTIONAL_PARAMS = 0;
+static const int INPUT_PARAMS = 0;
 
 static const char PROC_DIR_ABS_PATH[] = "/proc";
 static const char COMM_FILEPATH_RELATIVE_TO_PID[] = "comm";
@@ -341,7 +341,7 @@ print_processes(process_t *processes, size_t processes_size)
 int
 main(int argc, char *argv[])
 {
-	if (argc != INPUT_OPTIONAL_PARAMS + 1) {
+	if (argc != INPUT_PARAMS + 1) {
 		fprintf(stderr,
 		        "Error while calling program. Expected %s call with no "
 		        "extra arguments\n",

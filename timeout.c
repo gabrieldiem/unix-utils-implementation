@@ -12,9 +12,7 @@
 static const int MINIMUM_INPUT_PARAMS = 2, MAXIMUM_INPUT_PARAMS = 3;
 static const int DURATION_INDEX_ARGV = 1, CMD_INDEX_ARGV = 2,
                  CMD_ARGS_INDEX_ARGV = 3;
-// static const char LINE_BREAK = '\n', STRING_NULL_TERMINATOR = '\0';
 static const int SIGNAL_NOT_SENT = -1;
-
 
 void
 handle_child_process(int child_pid, char *cmd, int cmd_duration)

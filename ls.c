@@ -22,7 +22,7 @@
 #define COLOR_BG_BLUE_BOLD "\e[44m"
 #define COLOR_RESET "\e[0m"
 
-static const int INPUT_OPTIONAL_PARAMS = 0;
+static const int INPUT_PARAMS = 0;
 
 static const int GENERIC_ERROR_CODE = -1;
 static const int SUCCESS = 0, FAILED = -1;
@@ -256,7 +256,7 @@ read_directory_entries(DIR *wd)
 int
 main(int argc, char *argv[])
 {
-	if (argc != INPUT_OPTIONAL_PARAMS + 1) {
+	if (argc != INPUT_PARAMS + 1) {
 		fprintf(stderr,
 		        "Error while calling program. Expected %s with no "
 		        "extra arguments\n",

@@ -13,7 +13,7 @@
 
 #define DIR_NAMES_BLACKLIST_SIZE 2
 
-static const int MAX_INPUT_OPTIONAL_PARAMS = 2, MIN_INPUT_OPTIONAL_PARAMS = 1;
+static const int MAX_INPUT_PARAMS = 2, MIN_INPUT_PARAMS = 1;
 static const char CASE_SENSITIVITY_NONE_FLAG[] = "-i";
 static const int NO_FLAG_FOUND = -1;
 static const int CASE_SENSITIVITY_FULL_CODE = 1, CASE_SENSITIVITY_NONE_CODE = 0;
@@ -67,8 +67,7 @@ parse_arguments(char phrase[PATH_MAX],
 		exit(EXIT_FAILURE);
 	}
 
-	if (flag_position == NO_FLAG_FOUND &&
-	    argc != MIN_INPUT_OPTIONAL_PARAMS + 1) {
+	if (flag_position == NO_FLAG_FOUND && argc != MIN_INPUT_PARAMS + 1) {
 		fprintf(stderr,
 		        "Error while calling program, non recognized parameter "
 		        "found. "
@@ -221,8 +220,7 @@ read_directory(DIR *directory,
 int
 main(int argc, char *argv[])
 {
-	if (argc > MAX_INPUT_OPTIONAL_PARAMS + 1 ||
-	    argc < MIN_INPUT_OPTIONAL_PARAMS + 1) {
+	if (argc > MAX_INPUT_PARAMS + 1 || argc < MIN_INPUT_PARAMS + 1) {
 		fprintf(stderr, "Error while calling program. Expected %s [-i] <phrase>\n", argv[0]);
 		exit(EXIT_FAILURE);
 	}
