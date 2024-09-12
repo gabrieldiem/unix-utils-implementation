@@ -3,3 +3,4 @@ find.c
 ls.c
 timeout.c
 infloop.c
+cp.c
