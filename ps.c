@@ -111,7 +111,7 @@ read_comm_file(char **cmd_name, char *comm_filepath)
 	int position = 0;
 	int comm_fd = open(comm_filepath, O_RDONLY);
 	if (comm_fd == GENERIC_ERROR_CODE) {
-		perror("Failed to open comm file form path");
+		perror("Failed to open comm file from path");
 		*cmd_name = NULL;
 		return FAILED;
 	}
