@@ -13,8 +13,6 @@
 #include <fcntl.h>
 #include <stdint.h>
 
-#define byte uint8_t
-
 static const int INPUT_PARAMS = 2;
 static const int SRC_FILE_ARGV_POSITION = 1, DEST_FILE_ARGV_POSITION = 2;
 
@@ -51,6 +49,17 @@ parse_arguments(char *argv[], char **src_filepath, char **dest_filepath)
 		fprintf(stderr, "Error: destination file '%s' already exists. Copy aborted", *dest_filepath);
 		exit(EXIT_FAILURE);
 	}
+}
+
+int
+unlink_file(char *filepath)
+{
+	int res = unlink(filepath);
+	if (res == GENERIC_ERROR_CODE) {
+		perror("Error: could not remove the file from the filesystem");
+		return FAILED;
+	}
+	return SUCCESS;
 }
 
 int
@@ -91,7 +100,7 @@ open_files(int *src_fd,
 		exit(EXIT_FAILURE);
 	}
 
-	*dest_fd = open(dest_filepath, O_RDONLY | O_CREAT);
+	*dest_fd = open(dest_filepath, O_CREAT | O_RDWR);
 	if (*dest_fd == GENERIC_ERROR_CODE) {
 		perror("Error: failed to create regular file from the "
 		       "destination path");
@@ -103,6 +112,7 @@ open_files(int *src_fd,
 	int res = fstat(*src_fd, &file_info);
 	if (res == GENERIC_ERROR_CODE) {
 		perror("Error: failed to accesing source file metadata");
+		unlink_file(dest_filepath);
 		close_all_fds(*src_fd, *dest_fd);
 		exit(EXIT_FAILURE);
 	}
@@ -111,7 +121,7 @@ open_files(int *src_fd,
 }
 
 int
-release_resources(byte *src_bytemap, byte *dest_bytemap, long src_filesize)
+release_resources(void *src_bytemap, void *dest_bytemap, long src_filesize)
 {
 	int res_src = munmap(src_bytemap, src_filesize);
 	if (res_src == GENERIC_ERROR_CODE) {
@@ -130,34 +140,48 @@ release_resources(byte *src_bytemap, byte *dest_bytemap, long src_filesize)
 }
 
 void
-copy_content(int src_fd, int dest_fd, long src_filesize, long PAGE_SIZE)
+copy_content(int src_fd, int dest_fd, long src_filesize, char *dest_filepath)
 {
 	void *src_map =
 	        mmap(NULL, src_filesize, PROT_READ, MAP_PRIVATE, src_fd, 0);
 	if (src_map == MAP_FAILED) {
 		perror("Error: could not map memory for source file");
-		close_all_fd(src_fd, dest_fd);
+		unlink_file(dest_filepath);
+		close_all_fds(src_fd, dest_fd);
 		exit(EXIT_FAILURE);
 	}
 
-	void *dest_map =
-	        mmap(NULL, src_filesize, PROT_WRITE, MAP_SHARED, dest_fd, 0);
+	int res = ftruncate(dest_fd, (off_t) src_filesize);
+	if (res == GENERIC_ERROR_CODE) {
+		perror("Error: could not grow file size for destination file");
+		int res = munmap(src_map, src_filesize);
+		if (res == GENERIC_ERROR_CODE) {
+			perror("Failed to unmap memory from source");
+		}
+		unlink_file(dest_filepath);
+		close_all_fds(src_fd, dest_fd);
+		exit(EXIT_FAILURE);
+	}
+
+	void *dest_map = mmap(
+	        NULL, src_filesize, PROT_READ | PROT_WRITE, MAP_SHARED, dest_fd, 0);
 	if (dest_map == MAP_FAILED) {
 		perror("Error: could not map memory for destination file");
 		int res = munmap(src_map, src_filesize);
 		if (res == GENERIC_ERROR_CODE) {
 			perror("Failed to unmap memory from source");
 		}
-		close_all_fd(src_fd, dest_fd);
+		unlink_file(dest_filepath);
+		close_all_fds(src_fd, dest_fd);
 		exit(EXIT_FAILURE);
 	}
 
-	byte *src_bytemap = (byte *) src_map;
-	byte *dest_bytemap = (byte *) dest_map;
+	memcpy(dest_map, src_map, src_filesize);
 
-	int res = release_resources(src_bytemap, dest_bytemap, src_filesize);
+	res = release_resources(src_map, dest_map, src_filesize);
 	if (res == FAILED) {
-		close_all_fd(src_fd, dest_fd);
+		unlink_file(dest_filepath);
+		close_all_fds(src_fd, dest_fd);
 		exit(EXIT_FAILURE);
 	}
 }
@@ -183,9 +207,9 @@ main(int argc, char *argv[])
 	long src_filesize = 0;
 	open_files(&src_fd, &dest_fd, src_filepath, dest_filepath, &src_filesize);
 
-	const long PAGE_SIZE = sysconf(_SC_PAGESIZE);
-	copy_content(src_fd, dest_fd, src_filesize, PAGE_SIZE);
+	// const long PAGE_SIZE = sysconf(_SC_PAGESIZE);
+	copy_content(src_fd, dest_fd, src_filesize, dest_filepath);
 
-	close_all_fd(src_fd, dest_fd);
+	close_all_fds(src_fd, dest_fd);
 	exit(EXIT_SUCCESS);
 }
