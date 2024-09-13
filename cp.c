@@ -21,6 +21,7 @@ static const int FAILED = -1, SUCCESS = 0;
 
 static const int FILE_EXISTS = 0, FILE_DOES_NOT_EXIST = -1;
 static const bool EXIT_ON_FAILURE = true, DONT_EXIT_ON_FAILURE = false;
+static const int ZERO_OFFSET = 0;
 
 int
 does_file_exist(char *filepath)
@@ -142,8 +143,8 @@ release_resources(void *src_bytemap, void *dest_bytemap, long src_filesize)
 void
 copy_content(int src_fd, int dest_fd, long src_filesize, char *dest_filepath)
 {
-	void *src_map =
-	        mmap(NULL, src_filesize, PROT_READ, MAP_PRIVATE, src_fd, 0);
+	void *src_map = mmap(
+	        NULL, src_filesize, PROT_READ, MAP_PRIVATE, src_fd, ZERO_OFFSET);
 	if (src_map == MAP_FAILED) {
 		perror("Error: could not map memory for source file");
 		unlink_file(dest_filepath);
@@ -164,7 +165,7 @@ copy_content(int src_fd, int dest_fd, long src_filesize, char *dest_filepath)
 	}
 
 	void *dest_map = mmap(
-	        NULL, src_filesize, PROT_READ | PROT_WRITE, MAP_SHARED, dest_fd, 0);
+	        NULL, src_filesize, PROT_WRITE, MAP_SHARED, dest_fd, ZERO_OFFSET);
 	if (dest_map == MAP_FAILED) {
 		perror("Error: could not map memory for destination file");
 		int res = munmap(src_map, src_filesize);
@@ -207,7 +208,6 @@ main(int argc, char *argv[])
 	long src_filesize = 0;
 	open_files(&src_fd, &dest_fd, src_filepath, dest_filepath, &src_filesize);
 
-	// const long PAGE_SIZE = sysconf(_SC_PAGESIZE);
 	copy_content(src_fd, dest_fd, src_filesize, dest_filepath);
 
 	close_all_fds(src_fd, dest_fd);
