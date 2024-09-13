@@ -2,9 +2,11 @@
 #include <time.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <string.h>
 
 #define OPTIONAL_INPUT_PARAMS 1
 #define MILISECONDS_TO_SLEEP 700L
+#define AUX_BUFF_SIZE 100
 
 int
 main(int argc, char *argv[])
@@ -14,9 +16,14 @@ main(int argc, char *argv[])
 		return -1;
 	}
 
+	char looping_message[AUX_BUFF_SIZE] = "looping\n";
+	char custom_message[AUX_BUFF_SIZE] = { '\0' };
+
 	char *message = NULL;
 	if (argc == OPTIONAL_INPUT_PARAMS + 1) {
 		message = argv[1];
+		strncat(custom_message, argv[1], AUX_BUFF_SIZE - 1);
+		strncat(custom_message, "\n", AUX_BUFF_SIZE - 1);
 	}
 
 	while (true) {
@@ -28,10 +35,13 @@ main(int argc, char *argv[])
 
 		nanosleep(&duration, &remaining);
 
-		if (message != NULL)
-			printf("%s\n", message);
-		else
-			printf("looping\n");
+		if (message != NULL) {
+			write(STDOUT_FILENO, custom_message, AUX_BUFF_SIZE);
+			fflush(stdout);
+		} else {
+			write(STDOUT_FILENO, looping_message, AUX_BUFF_SIZE);
+			fflush(stdout);
+		}
 	}
 
 	return 0;

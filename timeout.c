@@ -11,6 +11,7 @@
 #include <errno.h>
 
 #define EXEC_ARGV_LEN 3
+#define AUX_BUFF_SIZE 200
 #define TIMER_SIGNAL (SIGRTMIN + 1)
 
 static const int GENERIC_ERROR_CODE = -1;
@@ -24,28 +25,37 @@ void
 kill_process(int *child_pid)
 {
 	if (child_pid == NULL) {
-		fprintf(stderr,
-		        "Signal handler received a null pointer for PID\n");
+		char err_msg[AUX_BUFF_SIZE] =
+		        "Signal handler received a null pointer for PID\n";
+		write(STDERR_FILENO, err_msg, AUX_BUFF_SIZE);
+		fflush(stderr);
 		return;
 	}
 
 	int res = kill(*child_pid, SIGTERM);
 	if (res == SIGNAL_NOT_SENT) {
-		fprintf(stderr, "Error while trying to terminate program");
-		perror("\n");
+		char err_msg[AUX_BUFF_SIZE] =
+		        "Error while trying to terminate program\n";
+		write(STDERR_FILENO, err_msg, AUX_BUFF_SIZE);
+		fflush(stderr);
 	}
-	printf("\nCommand timed out\n");
+
+	char message[AUX_BUFF_SIZE] = "\nCommand timed out\n";
+	write(STDOUT_FILENO, message, AUX_BUFF_SIZE);
+	fflush(stdout);
 
 	if (wait(NULL) < 0) {
-		perror("Error on wait\n");
+		char err_msg[AUX_BUFF_SIZE] = "Error on wait\n";
+		write(STDERR_FILENO, err_msg, AUX_BUFF_SIZE);
+		fflush(stderr);
 		exit(EXIT_FAILURE);
 	}
 }
 
 void
-signal_handler_function(int, siginfo_t *si, void *)
+signal_handler_function(int, siginfo_t *signal_info, void *)
 {
-	kill_process((int *) (si->si_value.sival_ptr));
+	kill_process((int *) (signal_info->si_value.sival_ptr));
 }
 
 timer_t
