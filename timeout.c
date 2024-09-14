@@ -21,6 +21,12 @@ static const int DURATION_INDEX_ARGV = 1, CMD_INDEX_ARGV = 2,
                  CMD_ARGS_INDEX_ARGV = 3;
 static const int SIGNAL_NOT_SENT = -1;
 
+/*
+ * Send a SIGTERM signal to the process with the PID `child_pid`.
+ * If `child_pid` is NULL, the function returns.
+ * If the kill operation fails, an error message is printed.
+ * Waits for the child process to terminate.
+ */
 void
 kill_process(int *child_pid)
 {
@@ -52,12 +58,20 @@ kill_process(int *child_pid)
 	}
 }
 
+
+/*
+ * Signal handler function that calls `kill_process` with the PID stored in `signal_info`.
+ */
 void
 signal_handler_function(int, siginfo_t *signal_info, void *)
 {
 	kill_process((int *) (signal_info->si_value.sival_ptr));
 }
 
+/*
+ * Create a timer that sends a SIGTERM signal to the process with PID `cmd_pid`.
+ * If the timer creation fails the process exits.
+ */
 timer_t
 create_timer(int *cmd_pid)
 {
@@ -89,6 +103,10 @@ create_timer(int *cmd_pid)
 	return timerid;
 }
 
+/*
+ * Arm the timer with id `timerid` for an expiration duration of `cmd_duration`.
+ * If the timer setting fials the process exits.
+ */
 void
 arm_timer(int *cmd_duration, timer_t *timerid)
 {
@@ -108,6 +126,11 @@ arm_timer(int *cmd_duration, timer_t *timerid)
 	}
 }
 
+/*
+ * Wait for the child process to terminate.
+ * If the wait is interrupted by a signal, the function returns.
+ * If the wait fails for any other reason the process exits.
+ */
 void
 wait_or_return_on_interrupt()
 {
@@ -120,6 +143,11 @@ wait_or_return_on_interrupt()
 	}
 }
 
+/*
+ * Arm the timer with an expiration time of `_cmd_duration` for the process
+ * `_cmd_pid`, and wait for the child process to terminate. Deletes the timer
+ * after the wait (useful if the command finishes before the timer expiration).
+ */
 void
 arm_timer_and_wait(int _cmd_duration, int _cmd_pid)
 {
@@ -140,6 +168,11 @@ arm_timer_and_wait(int _cmd_duration, int _cmd_pid)
 	}
 }
 
+/*
+ * Run the command `cmd` with arguments `cmd_args` with a timeout of `cmd_duration` seconds.
+ * Forks a child process to execute the command using exec.
+ * The parent process arms the timer and waits for the child process to terminate.
+ */
 void
 run_command(char *cmd, char *cmd_args, int cmd_duration)
 {

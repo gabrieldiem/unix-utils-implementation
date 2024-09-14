@@ -35,6 +35,10 @@ static const char FILETYPE_REGULAR_FILE = '-', FILETYPE_DIRECTORY = 'd',
 static const char READ_PERMISSION = 'r', WRITE_PERMISSION = 'w',
                   EXECUTE_PERMISSION = 'x', NONE_PERMISSION = '-';
 
+/*
+ * Close the DIR `directory`.
+ * If closing fails, the current process exits.
+ */
 void
 close_directory(DIR *directory)
 {
@@ -46,6 +50,10 @@ close_directory(DIR *directory)
 	}
 }
 
+/*
+ * Read an entity from the directory `wd` into the struct `entity`.
+ * If the read fails, `entity` is nulled and the current process exits.
+ */
 void
 read_entity_from_directory(DIR *wd, struct dirent **entity)
 {
@@ -57,12 +65,19 @@ read_entity_from_directory(DIR *wd, struct dirent **entity)
 	}
 }
 
+/*
+ * Print the informational header of the meaning of the following values.
+ */
 void
 print_header()
 {
 	printf("%s %-9s %-7s %-6s %s\n", "type", "perms", "ownerid", "owner", "filename");
 }
 
+/*
+ * Print formatted and colored information about the entity read.
+ * `link_destination` is only printed for enitities of filetype `FILETYPE_LINK`
+ */
 void
 print_formatted(char *entity_name,
                 char username[MAX_USERNAME],
@@ -89,6 +104,9 @@ print_formatted(char *entity_name,
 	printf("\n");
 }
 
+/*
+ * Build the full filepath of `entity_name` into `filepath`.
+ */
 void
 build_filepath(char filepath[PATH_MAX], char *entity_name)
 {
@@ -99,6 +117,10 @@ build_filepath(char filepath[PATH_MAX], char *entity_name)
 	         entity_name);
 }
 
+/*
+ * Load the status of the entity represented by `filepath` into `file_status`.
+ * Returns `SUCCESS` if successful, `FAILED` otherwise.
+ */
 int
 load_file_status(char *filepath, struct stat *file_status)
 {
@@ -111,6 +133,10 @@ load_file_status(char *filepath, struct stat *file_status)
 	return SUCCESS;
 }
 
+
+/*
+ * Load the `username` and the `user_id` from `file_status`.
+ */
 void
 load_user_info(char username[MAX_USERNAME],
                char user_id[MAX_USERNAME],
@@ -129,6 +155,10 @@ load_user_info(char username[MAX_USERNAME],
 	snprintf(username, MAX_USERNAME - 1, "%s", user_info->pw_name);
 }
 
+/*
+ * Load the `filetype` from `entity` which can be `FILETYPE_DIRECTORY`,
+ * `FILETYPE_LINK` or `FILETYPE_REGULAR_FILE`.
+ */
 void
 load_filetype(char *filetype, struct dirent *entity)
 {
@@ -147,6 +177,11 @@ load_filetype(char *filetype, struct dirent *entity)
 	}
 }
 
+/*
+ * Load `all_permissions` from `file_status` with the format: `<read perm user><write
+ * perm user><execute perm user> <read perm group><write perm group><execute perm
+ * group> <read perm others><write perm others><execute perm others>`.
+ */
 void
 load_permissions_info(char all_permissions[MAX_PERMISSIONS_LEN],
                       struct stat *file_status)
@@ -193,6 +228,10 @@ load_permissions_info(char all_permissions[MAX_PERMISSIONS_LEN],
 	all_permissions[MAX_PERMISSIONS_LEN - 1] = STRING_NULL_TERMINATOR;
 }
 
+/*
+ * Load the destination of the symbolic link specified by `filepath` into
+ * `link_destination`. Returns `SUCCESS` if successful, `FAILED` otherwise.
+ */
 int
 load_link_destination(char filepath[PATH_MAX], char link_destination[PATH_MAX])
 {
@@ -205,6 +244,12 @@ load_link_destination(char filepath[PATH_MAX], char link_destination[PATH_MAX])
 	return SUCCESS;
 }
 
+/*
+ * Read all the entries of the directory `wd` and print their information with
+ * the format: <filetype> <permissions> <owner id> <owner name>  <filename>
+ * [link destination]. If the read of an enitity fails, the process exits.
+ * Returns `SUCCESS` if successful, `FAILED` otherwise.
+ */
 int
 read_directory_entries(DIR *wd)
 {

@@ -23,6 +23,10 @@ static const int FILE_EXISTS = 0, FILE_DOES_NOT_EXIST = -1;
 static const bool EXIT_ON_FAILURE = true, DONT_EXIT_ON_FAILURE = false;
 static const int ZERO_OFFSET = 0;
 
+/*
+ * Check if the file at `filepath` exists.
+ * Returns `FILE_EXISTS` if the file exists, otherwise returns `FILE_DOES_NOT_EXIST`.
+ */
 int
 does_file_exist(char *filepath)
 {
@@ -34,6 +38,10 @@ does_file_exist(char *filepath)
 	return FILE_EXISTS;
 }
 
+/*
+ * Parse command-line arguments to get source and destination file paths.
+ * If the source file does not exist or the destination file already exists, the process exits.
+ */
 void
 parse_arguments(char *argv[], char **src_filepath, char **dest_filepath)
 {
@@ -52,6 +60,10 @@ parse_arguments(char *argv[], char **src_filepath, char **dest_filepath)
 	}
 }
 
+/*
+ * Delete the file at `filepath`.
+ * Returns `SUCCESS` if the file is successfully deleted, otherwise returns `FAILED`.
+ */
 int
 unlink_file(char *filepath)
 {
@@ -63,6 +75,11 @@ unlink_file(char *filepath)
 	return SUCCESS;
 }
 
+/*
+ * Close the FD `fd`.
+ * If `exit_on_failure` is `EXIT_FAILURE` and closing the file descriptor fails the process exits.
+ * Returns `SUCCESS` if the FD is successfully closed, otherwise returns `FAILED`.
+ */
 int
 close_fd(int fd, bool exit_on_failure)
 {
@@ -77,6 +94,10 @@ close_fd(int fd, bool exit_on_failure)
 	return SUCCESS;
 }
 
+/*
+ * Close `src_fd` and `dest_fd` FDs.
+ * If closing any file descriptor fails, the process exits.
+ */
 void
 close_all_fds(int src_fd, int dest_fd)
 {
@@ -88,6 +109,12 @@ close_all_fds(int src_fd, int dest_fd)
 	}
 }
 
+/*
+ * Open the source and destination files via the src_filepath and dest_filepath
+ * paths and save the FDs. If opening any file or getting the source file
+ * metadata fails, the process exits. The size in bytes of the source files is
+ * saved in `src_filesize`
+ */
 void
 open_files(int *src_fd,
            int *dest_fd,
@@ -121,6 +148,10 @@ open_files(int *src_fd,
 	*src_filesize = file_info.st_size;
 }
 
+/*
+ * Release the memory mappings pointed by `src_bytemap` and `dest_bytemap`.
+ * Returns `SUCCESS` if both memory mappings are successfully released, otherwise returns `FAILED`.
+ */
 int
 release_resources(void *src_bytemap, void *dest_bytemap, long src_filesize)
 {
@@ -140,6 +171,12 @@ release_resources(void *src_bytemap, void *dest_bytemap, long src_filesize)
 	return SUCCESS;
 }
 
+/*
+ * Copy the content from the source file pointed by the FD `src_fd` to the
+ * destination file pointed by the FD `dest_fd` using memory mapping and
+ * expanding the size of `dest_fd`. If the mapping operations, the size
+ * expansion or the memory unmapping fails, the process exits.
+ */
 void
 copy_content(int src_fd, int dest_fd, long src_filesize, char *dest_filepath)
 {

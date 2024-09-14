@@ -28,6 +28,12 @@ static const int WD_PATH_ALIAS_LEN = 1;
 static const char *DIR_NAMES_BLACKLIST[DIR_NAMES_BLACKLIST_SIZE] = { ".", ".." };
 static const int DIR_NAMES_BLACKLIST_MAX_LEN = 3;
 
+/*
+ * Parse the argv to extract the `phrase` to be used to find inside entity names
+ * and establish the `case_sensitivity_code` ased on the presence of the case
+ * insensitivity flag. If the arguments don't respect the order or are invalid
+ * (e.g. zero size string) the program exits.
+ */
 void
 parse_arguments(char phrase[PATH_MAX],
                 int *case_sensitivity_code,
@@ -77,6 +83,9 @@ parse_arguments(char phrase[PATH_MAX],
 	}
 }
 
+/*
+ * Close the `directory`. If the closing fails, the current process exits.
+ */
 void
 close_directory(DIR *directory)
 {
@@ -88,6 +97,10 @@ close_directory(DIR *directory)
 	}
 }
 
+/*
+ * Read an entity from the directory `wd` into the struct `entity`.
+ * If the read fails, `entity` is nulled and the current process exits.
+ */
 void
 read_entity_from_directory(DIR *wd, struct dirent **entity)
 {
@@ -99,6 +112,10 @@ read_entity_from_directory(DIR *wd, struct dirent **entity)
 	}
 }
 
+/*
+ * Check if `string` contains `substring` without taking into account the letter
+ * case. Returns `true` if `substring` is found in `string`, `false` otherwise.
+ */
 bool
 contains_substring_case_sensitive_none(char *string, char *substring)
 {
@@ -110,6 +127,10 @@ contains_substring_case_sensitive_none(char *string, char *substring)
 	return true;
 }
 
+/*
+ * Check if `string` contains `substring` taking into account the letter case.
+ * Returns `true` if `substring` is found in `string`, `false` otherwise.
+ */
 bool
 contains_substring_case_sensitive_full(char *string, char *substring)
 {
@@ -121,6 +142,10 @@ contains_substring_case_sensitive_full(char *string, char *substring)
 	return true;
 }
 
+/*
+ * Print the full path of the entity if it contains the `phrase` according to
+ * the `contains_substring` parameter function.
+ */
 void
 print_if_contains_substring(char *entity_name,
                             char *fullpath,
@@ -134,6 +159,10 @@ print_if_contains_substring(char *entity_name,
 	}
 }
 
+/*
+ * Check if the `entity_name` is in the directory names blacklist `DIR_NAMES_BLACKLIST`.
+ * Returns `true` if `entity_name` is blacklisted, `false` otherwise.
+ */
 bool
 is_directory_blacklisted(char *entity_name)
 {
@@ -151,6 +180,10 @@ is_directory_blacklisted(char *entity_name)
 	return is_blacklisted;
 }
 
+/*
+ * Build the full path of the entity given the `parent_path` and `entity_name`.
+ * The result is stored in `fullpath`.
+ */
 void
 build_fullpath(char fullpath[PATH_MAX], const char *parent_path, char *entity_name)
 {
@@ -167,6 +200,13 @@ build_fullpath(char fullpath[PATH_MAX], const char *parent_path, char *entity_na
 	         entity_name);
 }
 
+/*
+ * Recursively read the all the entities inside the DIR `directory` and print
+ * the full path of each entity that contains the `phrase` in its name according
+ * to the `contains_substring` parameter function. If the entity is a directory
+ * and not blacklisted, it opens the directory and reads it recursively.
+ * If the read of an entity fails, the process exits.
+ */
 void
 read_directory(DIR *directory,
                const char *parent_path,
