@@ -22,6 +22,14 @@ Una vez compilado, se pueden **ejecutar** los siguientes programas:
 ./ls
 ```
 
+```shell
+./cp <source file> <destination file>
+```
+
+```shell
+./timeout <max duration in seconds> <command> <command argument>
+```
+
 Para **eliminar** los ejecutables correr el comando:
 
 ```shell
@@ -59,16 +67,27 @@ Información del output:
 ```
 
 Donde filetype toma los valores:
+
 - `d`: si es un directorio
 - `l`: si es un link
-- `-`:  si es un archivo
+- `-`: si es un archivo
 
 Los permisos tienen la forma estándar:
+
 ```
 <read perm user><write perm user><execute perm user> <read perm group><write perm group><execute perm group> <read perm others><write perm others><execute perm others>
 ```
+
 Donde si el permiso correspondiente no está presente el caracter mostrado es: `-`.
 
 El `[link destination]` se muestra sólo en el caso de las entidades que son links.
 
+### cp
+
+Copia un archivo, denominado archivo fuente, en una ubicación con nombre especificado, archivo denominado cono destino.
+
 ### timeout
+
+Realiza una ejecución de un segundo proceso, y espera una cantidad de tiempo prefijada. Si se excede ese tiempo y el proceso sigue en ejecución, lo termina enviándole SIGTERM. Si el proceso termina antes, el programa finaliza.
+
+En la invocación `<command argument>` se refiere a un argumento que será pasado al proceso a monitorear `<command>`. Se ofrece como ejemplo un programa `infloop` que cicla de manera indefinida imprimiendo un mensaje por pantalla cada cierto tiempo. Para probar timeout, también de podría ejecutar algo como: `./timeout 3 ping google.com`.
