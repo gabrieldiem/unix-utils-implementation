@@ -42,6 +42,20 @@ Para **formatear** el código fuente:
 make format
 ```
 
+También se ofrece ejecución contenerizada con Docker, donde se pueden ejecutar los siguientes comandos:
+
+Para crear el container ejecutar:
+
+```shell
+make docker-build
+```
+
+Para ejecutar una shell dentro de Docker, lista para compilar y ejecutar los challenges (como se describió anteriormente):
+
+```shell
+make docker-run
+```
+
 ## Más información sobre los ejecutables
 
 ### ps (process status)
