@@ -55,7 +55,7 @@ parse_arguments(char *argv[], char **src_filepath, char **dest_filepath)
 
 	*dest_filepath = argv[DEST_FILE_ARGV_POSITION];
 	if (does_file_exist(*dest_filepath) == FILE_EXISTS) {
-		fprintf(stderr, "Error: destination file '%s' already exists. Copy aborted", *dest_filepath);
+		fprintf(stderr, "Error: destination file '%s' already exists. Copy aborted\n", *dest_filepath);
 		exit(EXIT_FAILURE);
 	}
 }
@@ -128,7 +128,9 @@ open_files(int *src_fd,
 		exit(EXIT_FAILURE);
 	}
 
-	*dest_fd = open(dest_filepath, O_CREAT | O_RDWR);
+	*dest_fd = open(dest_filepath,
+	                O_CREAT | O_RDWR,
+	                S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 	if (*dest_fd == GENERIC_ERROR_CODE) {
 		perror("Error: failed to create regular file from the "
 		       "destination path");
