@@ -7,6 +7,7 @@
 #define OPTIONAL_INPUT_PARAMS 1
 #define MILISECONDS_TO_SLEEP 700L
 #define AUX_BUFF_SIZE 100
+#define MARK_UNUSED(parameter) (void) (parameter)
 
 int
 main(int argc, char *argv[])
@@ -35,13 +36,15 @@ main(int argc, char *argv[])
 
 		nanosleep(&duration, &remaining);
 
+		int res = 0;
 		if (message != NULL) {
-			write(STDOUT_FILENO, custom_message, AUX_BUFF_SIZE);
+			res = write(STDOUT_FILENO, custom_message, AUX_BUFF_SIZE);
 			fflush(stdout);
 		} else {
-			write(STDOUT_FILENO, looping_message, AUX_BUFF_SIZE);
+			res = write(STDOUT_FILENO, looping_message, AUX_BUFF_SIZE);
 			fflush(stdout);
 		}
+		MARK_UNUSED(res);
 	}
 
 	return 0;

@@ -13,6 +13,7 @@
 #define EXEC_ARGV_LEN 3
 #define AUX_BUFF_SIZE 200
 #define TIMER_SIGNAL (SIGRTMIN + 1)
+#define MARK_UNUSED(parameter) (void) (parameter)
 
 static const int GENERIC_ERROR_CODE = -1;
 
@@ -30,29 +31,30 @@ static const int SIGNAL_NOT_SENT = -1;
 void
 kill_process(int *child_pid)
 {
+	int res = 0;
 	if (child_pid == NULL) {
 		char err_msg[AUX_BUFF_SIZE] =
 		        "Signal handler received a null pointer for PID\n";
-		write(STDERR_FILENO, err_msg, AUX_BUFF_SIZE);
+		res = write(STDERR_FILENO, err_msg, AUX_BUFF_SIZE);
 		fflush(stderr);
 		return;
 	}
 
-	int res = kill(*child_pid, SIGTERM);
+	res = kill(*child_pid, SIGTERM);
 	if (res == SIGNAL_NOT_SENT) {
 		char err_msg[AUX_BUFF_SIZE] =
 		        "Error while trying to terminate program\n";
-		write(STDERR_FILENO, err_msg, AUX_BUFF_SIZE);
+		res = write(STDERR_FILENO, err_msg, AUX_BUFF_SIZE);
 		fflush(stderr);
 	}
 
 	char message[AUX_BUFF_SIZE] = "\nCommand timed out\n";
-	write(STDOUT_FILENO, message, AUX_BUFF_SIZE);
+	res = write(STDOUT_FILENO, message, AUX_BUFF_SIZE);
 	fflush(stdout);
 
 	if (wait(NULL) < 0) {
 		char err_msg[AUX_BUFF_SIZE] = "Error on wait\n";
-		write(STDERR_FILENO, err_msg, AUX_BUFF_SIZE);
+		res = write(STDERR_FILENO, err_msg, AUX_BUFF_SIZE);
 		fflush(stderr);
 		exit(EXIT_FAILURE);
 	}
@@ -63,8 +65,10 @@ kill_process(int *child_pid)
  * Signal handler function that calls `kill_process` with the PID stored in `signal_info`.
  */
 void
-signal_handler_function(int, siginfo_t *signal_info, void *)
+signal_handler_function(int _unused_1, siginfo_t *signal_info, void *_unused_2)
 {
+	MARK_UNUSED(_unused_1);
+	MARK_UNUSED(_unused_2);
 	kill_process((int *) (signal_info->si_value.sival_ptr));
 }
 
